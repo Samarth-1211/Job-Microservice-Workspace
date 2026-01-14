@@ -1,0 +1,91 @@
+package com.JobApplication.reviewms.reviews.services;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+
+import com.JobApplication.reviewms.exceptions.ResourceNotFoundException;
+import com.JobApplication.reviewms.reviews.dto.ReviewDTO;
+import com.JobApplication.reviewms.reviews.entity.ReviewEntity;
+import com.JobApplication.reviewms.reviews.repositories.ReviewRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class ReviewService {
+
+    private final ReviewRepository repo;
+    private final ModelMapper mapper;
+    // private final companyRepository companyrepo;
+
+    // public Boolean doesCompanyExist(Long companyId){
+    // if(companyrepo.findById(companyId).isPresent()) return true;
+    // return false;
+    // }
+
+    public List<ReviewDTO> getAllReview(Long companyId) {
+        // if(!doesCompanyExist(companyId)) throw new ResourceNotFoundException("Company
+        // With Provided Id Does Not Exist");
+
+        List<ReviewEntity> reviewsEntity = repo.findByCompanyId(companyId);
+        return reviewsEntity
+                .stream()
+                .map(reviewEntity -> mapper.map(reviewEntity, ReviewDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public ReviewDTO PostReviewForCompany(ReviewDTO review, Long companyId) {
+        // if(!doesCompanyExist(companyId)) throw new ResourceNotFoundException("Company
+        // With Provided Id Does Not Exist");
+
+        // companyEntity company = companyrepo.findById(companyId).get();
+        ReviewEntity entity = mapper.map(review, ReviewEntity.class);
+        entity.setCompanyId(companyId);
+        return mapper.map(repo.save(entity), ReviewDTO.class);
+
+    }
+
+
+
+
+    public void deleteReviewOfCompanyByReviewId(Long companyId, Long reviewId) {
+        ReviewEntity review = repo.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review With Particular Id Does Not Exist"));
+        if(!review.getCompanyId().equals(companyId)) throw new
+        ResourceNotFoundException("Review DoesNot Belong to This Company");
+        repo.deleteById(reviewId);
+    }
+
+
+
+
+    public ReviewDTO getReviewByreviewId(Long companyId, Long reviewId) {
+        ReviewEntity entity = repo.findById(reviewId).orElseThrow(() -> new ResourceNotFoundException("Review With Prticular Id does Not Exist"));
+        if(!entity.getCompanyId().equals(companyId)) throw new ResourceNotFoundException("Review does not belong to this company");
+        else return mapper.map(entity, ReviewDTO.class);
+    }
+
+
+
+    public ReviewDTO updateReviewofACopmanyWithReviewId(Long companyId, Long reviewId, ReviewDTO ReviewUpdate) {
+
+        ReviewEntity existing = repo.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review With Id -> " + reviewId + " Does Not Exist"));
+
+        if (!existing.getCompanyId().equals(companyId))
+            throw new ResourceNotFoundException(
+                    "Review With Id -> " + reviewId + " Does Not Belong to Particular Company");
+        else{
+            existing.setTitle(ReviewUpdate.getTitle());
+            existing.setDescription(ReviewUpdate.getDescription());
+            existing.setRatings(ReviewUpdate.getRatings());
+        }
+       
+
+        return mapper.map(repo.save(existing), ReviewDTO.class);
+    }
+
+}
