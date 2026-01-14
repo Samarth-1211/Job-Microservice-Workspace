@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+
+  # ================= COMPANY MS =================
+  company-db:
+    image: mysql:8.0
+    container_name: company-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: jobmanagement_companymsdb
+    ports:
+      - "3307:3306"
+    volumes:
+      - company-db-data:/var/lib/mysql
+
+  companyms:
+    build: ./companyms
+    container_name: companyms
+    ports:
+      - "8082:8082"
+    depends_on:
+      - company-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://company-db:3306/jobmanagement_companymsdb?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+
+  # ================= JOB MS =================
+  job-db:
+    image: mysql:8.0
+    container_name: job-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: jobmanagement_jobmsdb
+    ports:
+      - "3308:3306"
+    volumes:
+      - job-db-data:/var/lib/mysql
+
+  jobms:
+    build: ./jobms
+    container_name: jobms
+    ports:
+      - "8081:8081"
+    depends_on:
+      - job-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://job-db:3306/jobmanagement_jobmsdb?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+
+  # ================= REVIEW MS =================
+  review-db:
+    image: mysql:8.0
+    container_name: review-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: jobmanagement_reviewmsdb
+    ports:
+      - "3309:3306"
+    volumes:
+      - review-db-data:/var/lib/mysql
+
+  reviewms:
+    build: ./reviewms
+    container_name: reviewms
+    ports:
+      - "8083:8083"
+    depends_on:
+      - review-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://review-db:3306/jobmanagement_reviewmsdb?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+
+volumes:
+  company-db-data:
+  job-db-data:
+  review-db-data:
