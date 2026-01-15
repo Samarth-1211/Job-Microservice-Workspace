@@ -7,10 +7,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestTemplate;
-
 import com.JobApplication.reviewms.clients.Companydto;
 import com.JobApplication.reviewms.exceptions.ResourceNotFoundException;
+import com.JobApplication.reviewms.reviews.dto.CompanyAndReviewDTO;
 import com.JobApplication.reviewms.reviews.dto.ReviewDTO;
 import com.JobApplication.reviewms.reviews.entity.ReviewEntity;
 import com.JobApplication.reviewms.reviews.repositories.ReviewRepository;
@@ -24,35 +23,56 @@ public class ReviewService {
     private final ReviewRepository repo;
     private final ModelMapper mapper;
 
-    // Using Rest Client to Know the company Id as well
+    
     @Qualifier("companymsRestClient")
     private final RestClient restClient;
 
-    public List<ReviewDTO> getAllReview(Long companyId) {
 
+
+    // Usefull Methods 
+    //1
+    public Companydto getCompanydto(Long companyId){
+        return  restClient.get()
+        .uri("/{companyId}", companyId)
+        .retrieve()
+        .body(Companydto.class);
+    }
+
+    //2
+
+    public CompanyAndReviewDTO convertReviewdtoCompanyAndReviewDTO(ReviewEntity reviewEntity ,Long companyId){
+       
+            CompanyAndReviewDTO compAndRevDTO = new CompanyAndReviewDTO();
+            
+            compAndRevDTO.setReview(mapper.map(reviewEntity,ReviewDTO.class));
+            Companydto company = getCompanydto(companyId);
+            compAndRevDTO.setCompany(company);
+        return compAndRevDTO;
+    }
+
+
+
+    public List<CompanyAndReviewDTO> getAllReview(Long companyId) {
+        List<ReviewEntity> reviewsEntity = repo.findByCompanyId(companyId);
         // 1. Validate company existence via CompanyMS
-        Companydto company = restClient.get()
-                .uri("/{companyId}", companyId)
-                .retrieve()
-                .body(Companydto.class);
-
+        Companydto company = getCompanydto(companyId);
         if (company == null || company.getId() == null) {
             throw new ResourceNotFoundException(
                     "Company with id " + companyId + " does not exist");
         }
-
-        // 2. Fetch reviews
-        List<ReviewEntity> reviewsEntity = repo.findByCompanyId(companyId);
-
+        // Set All the reviewEntity to companyAndReviewDTO
         return reviewsEntity.stream()
-                .map(entity -> mapper.map(entity, ReviewDTO.class))
-                .collect(Collectors.toList());
+                                .map(
+                                    entity -> 
+                                        convertReviewdtoCompanyAndReviewDTO(entity ,companyId))
+                                .collect(Collectors.toList());
     }
 
     public ReviewDTO PostReviewForCompany(ReviewDTO review, Long companyId) {
         if (companyId != null && review != null) {
             ReviewEntity entity = mapper.map(review, ReviewEntity.class);
-            entity.setCompanyId(companyId);
+            // entity.setCompanyId(companyId);
+            entity.setCompanyId(getCompanydto(companyId).getId());
             return mapper.map(repo.save(entity), ReviewDTO.class);
         } else
             throw new NullPointerException("Review Or Comapny Id is Null");

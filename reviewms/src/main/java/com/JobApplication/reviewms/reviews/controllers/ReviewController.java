@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.JobApplication.reviewms.reviews.dto.CompanyAndReviewDTO;
 import com.JobApplication.reviewms.reviews.dto.ReviewDTO;
 import com.JobApplication.reviewms.reviews.services.ReviewService;
 
@@ -28,7 +29,7 @@ public class ReviewController {
 
 
     @GetMapping()
-    public ResponseEntity<List<ReviewDTO>> getAllReviews(@RequestParam Long companyId){
+    public ResponseEntity<List<CompanyAndReviewDTO>> getAllReviews(@RequestParam Long companyId){
         return new ResponseEntity<>(service.getAllReview(companyId),HttpStatus.OK);
     }
 

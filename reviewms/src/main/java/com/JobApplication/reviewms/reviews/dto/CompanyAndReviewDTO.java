@@ -1,21 +1,21 @@
 package com.JobApplication.reviewms.reviews.dto;
 
+import com.JobApplication.reviewms.clients.Companydto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ReviewDTO {
+public class CompanyAndReviewDTO {
 
-    private Long id;
-    private String title;
-    private String description;
-    private Double ratings;
-    private Long companyId;
+    private ReviewDTO review;
+    private Companydto Company;
 
+    
 }
